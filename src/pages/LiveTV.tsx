@@ -11,12 +11,26 @@ const LiveTVPage = () => {
             <div className="absolute top-4 left-4 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 z-10 animate-pulse">
               <div className="w-2 h-2 bg-white rounded-full"></div> LIVE
             </div>
-            <iframe className="w-full h-full" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1" title="Live TV" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+            <iframe
+              className="w-full h-full select-none"
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&modestbranding=1&rel=0"
+              title="Live TV"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+            {/* Logo Mask / Watermark - Increased size and opacity to fully cover YouTube logo */}
+            <div className="absolute bottom-4 right-4 w-40 h-10 bg-black flex items-center justify-center rounded-lg pointer-events-none z-20 border border-white/10 shadow-2xl">
+              <span className="text-xs font-bold text-white tracking-widest flex items-center gap-2">
+                <div className="w-2 h-2 bg-brand rounded-full animate-pulse"></div>
+                AMG <span className="text-brand">PRIME</span>
+              </span>
+            </div>
           </div>
-          
+
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">AMG Prime News Live</h1>
           <p className="text-zinc-400 text-sm mb-6">24/7 Live coverage of breaking news, deep analysis, and exclusive interviews from around the globe.</p>
-          
+
           {/* EPG / Schedule */}
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-brand" /> Today's Schedule
@@ -45,7 +59,7 @@ const LiveTVPage = () => {
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 h-[400px] lg:h-[600px] flex flex-col">
             <h3 className="text-sm font-bold text-white mb-4 border-b border-zinc-800 pb-2">Live Discussion</h3>
             <div className="flex-1 overflow-y-auto space-y-4 no-scrollbar">
-              {[1,2,3,4,5,6].map(i => (
+              {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="flex gap-3">
                   <div className="w-6 h-6 rounded-full bg-zinc-800 shrink-0 flex items-center justify-center text-[10px] font-bold text-zinc-500">U{i}</div>
                   <div>

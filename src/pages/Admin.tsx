@@ -3,16 +3,16 @@ import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db, auth, storage } from '../firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { signOut, User as FirebaseUser } from 'firebase/auth';
-import { 
-  LayoutDashboard, Film, Users, Settings, Plus, Trash2, ArrowLeft, LogOut, Video, 
-  Activity, Eye, TrendingUp, BookOpen, Calendar, CreditCard, Bell, FileText, 
-  Upload, CheckCircle2, AlertCircle 
+import {
+  LayoutDashboard, Film, Users, Settings, Plus, Trash2, ArrowLeft, LogOut, Video,
+  Activity, Eye, TrendingUp, BookOpen, Calendar, CreditCard, Bell, FileText,
+  Upload, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FirestoreService, Video as IVideo } from '../lib/firestore-service';
 import { ToastType } from '../components/Toast';
 
-const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, isAdmin: boolean, showToast?: (m: string, t: ToastType) => void }) => {
+const AdminPanel = ({ user, isAdmin, authLoading, showToast }: { user: FirebaseUser | null, isAdmin: boolean, authLoading: boolean, showToast?: (m: string, t: ToastType) => void }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [articles, setArticles] = useState<any[]>([]);
@@ -33,15 +33,15 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
     const uploadTask = uploadBytesResumable(storageRef, file);
 
     return new Promise<string>((resolve, reject) => {
-      uploadTask.on('state_changed', 
+      uploadTask.on('state_changed',
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           setUploadProgress(prev => ({ ...prev, [fieldName]: progress }));
-        }, 
+        },
         (error) => {
           showToast?.("Upload failed", "error");
           reject(error);
-        }, 
+        },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             setUploadProgress(prev => {
@@ -57,6 +57,7 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
   };
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user || !isAdmin) {
       navigate('/');
       return;
@@ -87,7 +88,39 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
     };
   }, [user, isAdmin, navigate]);
 
-  if (!user || !isAdmin) return null;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-zinc-400 font-medium">Verifying authorization...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-zinc-950 border border-zinc-900 rounded-2xl p-8 text-center shadow-2xl">
+          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Settings className="w-8 h-8 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+          <p className="text-zinc-400 mb-8">
+            You don't have administrative privileges to access this area. 
+            If you believe this is an error, please contact support.
+          </p>
+          <button 
+            onClick={() => navigate('/')}
+            className="w-full bg-zinc-100 text-black py-3 rounded-xl font-semibold hover:bg-white transition-colors"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handlePublish = async (type: string, data: any, resetter: () => void) => {
     setIsPublishing(true);
@@ -264,17 +297,17 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
           <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
             <Plus className="w-5 h-5 text-brand" /> {editingId ? 'Edit Video' : 'Add Video'}
           </h3>
-          <form onSubmit={async (e) => { 
-            e.preventDefault(); 
+          <form onSubmit={async (e) => {
+            e.preventDefault();
             handlePublish('videos', { ...newVideo, thumbnail: newVideo.thumbnail || `https://picsum.photos/seed/${Date.now()}/800/450` }, () => setNewVideo({ title: "", category: "Healthcare News", youtubeId: "", thumbnail: "", isPremium: false }));
           }} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-zinc-400 mb-1">Title</label>
-              <input type="text" value={newVideo.title} onChange={e => setNewVideo({...newVideo, title: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white outline-none" placeholder="Video title" required />
+              <input type="text" value={newVideo.title} onChange={e => setNewVideo({ ...newVideo, title: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white outline-none" placeholder="Video title" required />
             </div>
             <div>
               <label className="block text-xs font-bold text-zinc-400 mb-1">Category</label>
-              <select value={newVideo.category} onChange={e => setNewVideo({...newVideo, category: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white outline-none">
+              <select value={newVideo.category} onChange={e => setNewVideo({ ...newVideo, category: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white outline-none">
                 <option>Healthcare News</option>
                 <option>Medical Technology</option>
                 <option>AI in Healthcare</option>
@@ -284,7 +317,7 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
             </div>
             <div>
               <label className="block text-xs font-bold text-zinc-400 mb-1">YouTube ID</label>
-              <input type="text" value={newVideo.youtubeId} onChange={e => setNewVideo({...newVideo, youtubeId: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white outline-none" placeholder="dQw4w9WgXcQ" required />
+              <input type="text" value={newVideo.youtubeId} onChange={e => setNewVideo({ ...newVideo, youtubeId: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white outline-none" placeholder="dQw4w9WgXcQ" required />
             </div>
             <div>
               <label className="block text-xs font-bold text-zinc-400 mb-1">Thumbnail Image</label>
@@ -304,15 +337,15 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
               </div>
             </div>
             <label className="flex items-center gap-2 cursor-pointer mt-2">
-              <input type="checkbox" checked={newVideo.isPremium} onChange={e => setNewVideo({...newVideo, isPremium: e.target.checked})} className="w-4 h-4 accent-brand border-zinc-800" />
+              <input type="checkbox" checked={newVideo.isPremium} onChange={e => setNewVideo({ ...newVideo, isPremium: e.target.checked })} className="w-4 h-4 accent-brand border-zinc-800" />
               <span className="text-sm text-zinc-300">Premium Content</span>
             </label>
             <button type="submit" disabled={isPublishing} className="w-full bg-brand text-black py-2.5 rounded font-bold hover:bg-brand/90 mt-4 disabled:opacity-50 transition-all active:scale-[0.98]">
               {isPublishing ? 'Processing...' : (editingId ? 'Update Video' : 'Publish Video')}
             </button>
             {editingId && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => { setEditingId(null); setNewVideo({ title: "", category: "Healthcare News", youtubeId: "", thumbnail: "", isPremium: false }); }}
                 className="w-full bg-zinc-800 text-white py-2 rounded text-xs mt-2"
               >
@@ -361,7 +394,7 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 h-fit">
           <h3 className="text-lg font-bold text-white mb-6">{editingId ? 'Edit Article' : 'Write Article'}</h3>
           <form onSubmit={(e) => { e.preventDefault(); handlePublish('articles', { ...newArticle, thumbnail: newArticle.thumbnail || `https://picsum.photos/seed/${Date.now()}/800/450` }, () => setNewArticle({ title: "", category: "Health News", content: "", thumbnail: "" })) }} className="space-y-4">
-            <input type="text" value={newArticle.title} onChange={e => setNewArticle({...newArticle, title: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Article Title" required />
+            <input type="text" value={newArticle.title} onChange={e => setNewArticle({ ...newArticle, title: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Article Title" required />
             <div className="space-y-2">
               <label className="block text-xs font-bold text-zinc-400 mb-1">Featured Image</label>
               <input type="file" accept="image/*" onChange={async (e) => {
@@ -372,13 +405,13 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
               }} className="text-xs text-zinc-400 cursor-pointer" />
               {uploadProgress.articleThumb !== undefined && <div className="w-full bg-zinc-800 h-1 rounded-full overflow-hidden"><div className="bg-brand h-full" style={{ width: `${uploadProgress.articleThumb}%` }} /></div>}
             </div>
-            <textarea value={newArticle.content} onChange={e => setNewArticle({...newArticle, content: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white h-32" placeholder="Full Article Content" required />
+            <textarea value={newArticle.content} onChange={e => setNewArticle({ ...newArticle, content: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white h-32" placeholder="Full Article Content" required />
             <button type="submit" disabled={isPublishing} className="w-full bg-brand text-black py-2.5 rounded font-bold">
               {isPublishing ? 'Processing...' : (editingId ? 'Update Article' : 'Publish Article')}
             </button>
             {editingId && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => { setEditingId(null); setNewArticle({ title: "", category: "Health News", content: "", thumbnail: "" }); }}
                 className="w-full bg-zinc-800 text-white py-2 rounded text-xs mt-2"
               >
@@ -428,18 +461,18 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 h-fit">
           <h3 className="text-lg font-bold text-white mb-6">{editingId ? 'Edit Issue' : 'Upload Issue'}</h3>
           <form onSubmit={(e) => { e.preventDefault(); handlePublish('magazines', { ...newMagazine, thumbnail: newMagazine.thumbnail || `https://picsum.photos/seed/${Date.now()}/300/400` }, () => setNewMagazine({ title: "", type: "Main", issueDate: new Date().toISOString().slice(0, 7), pdfUrl: "", thumbnail: "" })) }} className="space-y-4">
-            <input type="text" value={newMagazine.title} onChange={e => setNewMagazine({...newMagazine, title: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Issue Title" required />
+            <input type="text" value={newMagazine.title} onChange={e => setNewMagazine({ ...newMagazine, title: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Issue Title" required />
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-zinc-400 mb-1">Type</label>
-                <select value={newMagazine.type} onChange={e => setNewMagazine({...newMagazine, type: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white">
+                <select value={newMagazine.type} onChange={e => setNewMagazine({ ...newMagazine, type: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white">
                   <option>Main</option>
                   <option>Global</option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-bold text-zinc-400 mb-1">Issue Month</label>
-                <input type="month" value={newMagazine.issueDate} onChange={e => setNewMagazine({...newMagazine, issueDate: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" required />
+                <input type="month" value={newMagazine.issueDate} onChange={e => setNewMagazine({ ...newMagazine, issueDate: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" required />
               </div>
             </div>
             <div className="space-y-3 pt-2">
@@ -466,14 +499,14 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
             </div>
             <div className="pt-2">
               <p className="text-[10px] text-zinc-500 mb-2">Or enter a manual URL:</p>
-              <input type="url" value={newMagazine.pdfUrl} onChange={e => setNewMagazine({...newMagazine, pdfUrl: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-1.5 text-xs text-white" placeholder="https://..." />
+              <input type="url" value={newMagazine.pdfUrl} onChange={e => setNewMagazine({ ...newMagazine, pdfUrl: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-1.5 text-xs text-white" placeholder="https://..." />
             </div>
             <button type="submit" disabled={isPublishing} className="w-full bg-brand text-black py-2.5 rounded font-bold">
-               {isPublishing ? 'Processing...' : (editingId ? 'Update Issue' : 'Publish Issue')}
+              {isPublishing ? 'Processing...' : (editingId ? 'Update Issue' : 'Publish Issue')}
             </button>
             {editingId && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => { setEditingId(null); setNewMagazine({ title: "", type: "Main", issueDate: new Date().toISOString().slice(0, 7), pdfUrl: "", thumbnail: "" }); }}
                 className="w-full bg-zinc-800 text-white py-2 rounded text-xs mt-2"
               >
@@ -523,10 +556,10 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 h-fit">
           <h3 className="text-lg font-bold text-white mb-6">{editingId ? 'Edit Event' : 'Create Event'}</h3>
           <form onSubmit={(e) => { e.preventDefault(); handlePublish('events', { ...newEvent, thumbnail: newEvent.thumbnail || `https://picsum.photos/seed/${Date.now()}/800/450` }, () => setNewEvent({ title: "", date: "", location: "", description: "", thumbnail: "" })) }} className="space-y-4">
-            <input type="text" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Event Name" required />
+            <input type="text" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Event Name" required />
             <div className="grid grid-cols-2 gap-4">
-              <input type="date" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" required />
-              <input type="text" value={newEvent.location} onChange={e => setNewEvent({...newEvent, location: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Location" required />
+              <input type="date" value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" required />
+              <input type="text" value={newEvent.location} onChange={e => setNewEvent({ ...newEvent, location: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Location" required />
             </div>
             <div className="space-y-2">
               <label className="block text-xs font-bold text-zinc-400 mb-1">Banner Image</label>
@@ -538,13 +571,13 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
               }} className="text-xs text-zinc-400 cursor-pointer" />
               {uploadProgress.eventThumb !== undefined && <div className="w-full bg-zinc-800 h-1 rounded-full overflow-hidden"><div className="bg-brand h-full" style={{ width: `${uploadProgress.eventThumb}%` }} /></div>}
             </div>
-            <textarea value={newEvent.description} onChange={e => setNewEvent({...newEvent, description: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white h-24" placeholder="Description" required />
+            <textarea value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white h-24" placeholder="Description" required />
             <button type="submit" disabled={isPublishing} className="w-full bg-brand text-black py-2.5 rounded font-bold">
-               {isPublishing ? 'Processing...' : (editingId ? 'Update Event' : 'Create Event')}
+              {isPublishing ? 'Processing...' : (editingId ? 'Update Event' : 'Create Event')}
             </button>
             {editingId && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => { setEditingId(null); setNewEvent({ title: "", date: "", location: "", description: "", thumbnail: "" }); }}
                 className="w-full bg-zinc-800 text-white py-2 rounded text-xs mt-2"
               >
@@ -618,15 +651,15 @@ const AdminPanel = ({ user, isAdmin, showToast }: { user: FirebaseUser | null, i
         <form onSubmit={handleBroadcast} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-zinc-400 mb-1">Title</label>
-            <input type="text" value={notifications.title} onChange={e => setNotifications({...notifications, title: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Breaking News!" required />
+            <input type="text" value={notifications.title} onChange={e => setNotifications({ ...notifications, title: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white" placeholder="Breaking News!" required />
           </div>
           <div>
             <label className="block text-xs font-bold text-zinc-400 mb-1">Message Body</label>
-            <textarea value={notifications.body} onChange={e => setNotifications({...notifications, body: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white h-24" placeholder="New digital issue is now available..." required />
+            <textarea value={notifications.body} onChange={e => setNotifications({ ...notifications, body: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white h-24" placeholder="New digital issue is now available..." required />
           </div>
           <div>
             <label className="block text-xs font-bold text-zinc-400 mb-1">Target Topic</label>
-            <select value={notifications.topic} onChange={e => setNotifications({...notifications, topic: e.target.value})} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white">
+            <select value={notifications.topic} onChange={e => setNotifications({ ...notifications, topic: e.target.value })} className="w-full bg-black border border-zinc-800 rounded px-4 py-2 text-white">
               <option value="all">All Users</option>
               <option value="premium">Premium Only</option>
               <option value="newsletter">Newsletter Subscribers</option>

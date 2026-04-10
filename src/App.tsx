@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation, useParams } from "react-router-dom";
-import { 
+import {
   Search, Menu, X, ChevronRight, Settings, LogOut, User, Volume2, VolumeX, Play, Info,
   Home, Zap, Download, Bookmark, Share2, ArrowLeft, Cast, MoreVertical
 } from "lucide-react";
@@ -38,6 +38,7 @@ interface ContentItem {
 
 // --- Mock Data ---
 const HERO_SLIDE = {
+  id: "default-hero",
   title: "Radico Spirit of Excellence",
   subtitle: "DUOLOGUE WITH BARUN DAS",
   description: "A deep dive into the minds of visionaries.",
@@ -55,7 +56,7 @@ const BottomNav = () => {
     { name: "Downloads", path: "/downloads", icon: Download },
     { name: "Bookmarks", path: "/bookmarks", icon: Bookmark },
   ];
-  
+
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-xl border-t border-white/5 flex justify-between items-center px-6 py-2.5 z-50 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
       {navs.map(nav => {
@@ -78,7 +79,7 @@ const ContinueWatchingRow = () => {
     { id: "cw1", title: "Drive The Future", thumbnail: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=600&auto=format&fit=crop", progress: 60, timeLeft: "20m 8s left", isPremium: true },
     { id: "cw2", title: "Duologue with Barun Das", thumbnail: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?q=80&w=600&auto=format&fit=crop", progress: 30, timeLeft: "2m 30s left", isPremium: true },
   ];
-  
+
   return (
     <div className="mb-4 md:mb-8 max-w-7xl mx-auto">
       <h2 className="text-lg md:text-xl font-bold text-white tracking-tight mb-3 px-4 md:px-12">Continue Watching</h2>
@@ -122,85 +123,85 @@ const Navbar = ({ user, isAdmin }: { user: FirebaseUser | null, isAdmin: boolean
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/90 to-transparent transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 md:px-12 h-16 md:h-20 flex items-center justify-between">
-        
-        <button className="md:hidden text-white p-2 -ml-2" onClick={() => setIsOpen(!isOpen)}>
-          <Menu className="w-6 h-6" />
-        </button>
+        <div className="max-w-7xl mx-auto px-4 md:px-12 h-16 md:h-20 flex items-center justify-between">
 
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex flex-col leading-none items-center md:items-start">
-              <span className="text-xl md:text-2xl font-bold text-white tracking-tighter">news</span>
-              <span className="text-[8px] md:text-[10px] text-brand font-bold tracking-widest uppercase">AMG Prime</span>
-            </div>
-          </Link>
-
-          <div className="hidden lg:flex items-center gap-6">
-            {navItems.map((item) => (
-              <Link key={item.path} to={item.path} className={cn("text-xs font-semibold tracking-wider transition-colors hover:text-white", location.pathname === item.path ? "text-white" : "text-zinc-400")}>
-                {item.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="md:hidden w-6 h-6 bg-brand rounded-tl-lg rounded-br-lg rounded-tr-sm rounded-bl-sm flex items-center justify-center text-black font-serif font-bold text-xl leading-none">,</div>
-
-        <div className="hidden md:flex items-center gap-4 md:gap-6">
-          <button className="hidden md:block bg-brand hover:bg-brand/90 text-black px-6 py-1.5 rounded text-sm font-bold transition-colors">
-            Subscribe
+          <button className="md:hidden text-white p-2 -ml-2" onClick={() => setIsOpen(!isOpen)}>
+            <Menu className="w-6 h-6" />
           </button>
-          <button className="text-zinc-300 hover:text-white transition-colors"><Search className="w-5 h-5" /></button>
-          
-          <div className="hidden md:flex items-center gap-4 border-l border-zinc-700 pl-4">
-            {isAdmin && (
-              <Link to="/admin" className="text-xs font-semibold tracking-wider text-zinc-300 hover:text-white transition-colors flex items-center gap-1">
-                <Settings className="w-4 h-4" /> ADMIN
-              </Link>
-            )}
-            {user ? (
-              <div className="flex items-center gap-4">
-                <Link to="/profile" className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden border border-zinc-700 hover:border-brand transition-colors">
-                  {user.photoURL ? <img src={user.photoURL} alt="Profile" referrerPolicy="no-referrer" /> : <User className="w-4 h-4 text-zinc-400" />}
-                </Link>
-                <button onClick={() => signOut(auth)} className="border border-zinc-500 hover:border-white text-zinc-300 hover:text-white px-4 py-1.5 rounded text-xs font-bold transition-all">
-                  SIGN OUT
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => setIsAuthModalOpen(true)} className="border border-zinc-500 hover:border-white text-zinc-300 hover:text-white px-4 py-1.5 rounded text-xs font-bold transition-all">
-                SIGN IN
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="md:hidden absolute top-16 left-0 right-0 bg-zinc-950 border-b border-zinc-900 p-4 space-y-4 shadow-2xl overflow-hidden">
-            {navItems.map((item) => (
-              <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)} className="block text-sm font-semibold tracking-wider text-zinc-300 hover:text-white">
-                {item.name}
-              </Link>
-            ))}
-            <div className="pt-4 border-t border-zinc-800 flex flex-col gap-4">
-              <button className="bg-brand text-black px-6 py-2 rounded text-sm font-bold text-center">Subscribe</button>
-              {isAdmin && <Link to="/admin" onClick={() => setIsOpen(false)} className="text-sm font-semibold tracking-wider text-zinc-300">Admin Panel</Link>}
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="flex flex-col leading-none items-center md:items-start">
+                <span className="text-xl md:text-2xl font-bold text-white tracking-tighter">news</span>
+                <span className="text-[8px] md:text-[10px] text-brand font-bold tracking-widest uppercase">AMG Prime</span>
+              </div>
+            </Link>
+
+            <div className="hidden lg:flex items-center gap-6">
+              {navItems.map((item) => (
+                <Link key={item.path} to={item.path} className={cn("text-xs font-semibold tracking-wider transition-colors hover:text-white", location.pathname === item.path ? "text-white" : "text-zinc-400")}>
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="md:hidden w-6 h-6 bg-brand rounded-tl-lg rounded-br-lg rounded-tr-sm rounded-bl-sm flex items-center justify-center text-black font-serif font-bold text-xl leading-none">,</div>
+
+          <div className="hidden md:flex items-center gap-4 md:gap-6">
+            <button className="hidden md:block bg-brand hover:bg-brand/90 text-black px-6 py-1.5 rounded text-sm font-bold transition-colors">
+              Subscribe
+            </button>
+            <button className="text-zinc-300 hover:text-white transition-colors"><Search className="w-5 h-5" /></button>
+
+            <div className="hidden md:flex items-center gap-4 border-l border-zinc-700 pl-4">
+              {isAdmin && (
+                <Link to="/admin" className="text-xs font-semibold tracking-wider text-zinc-300 hover:text-white transition-colors flex items-center gap-1">
+                  <Settings className="w-4 h-4" /> ADMIN
+                </Link>
+              )}
               {user ? (
-                <button onClick={() => { signOut(auth); setIsOpen(false); }} className="border border-zinc-600 text-zinc-300 px-4 py-2 rounded text-sm font-bold text-center">Sign Out</button>
+                <div className="flex items-center gap-4">
+                  <Link to="/profile" className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden border border-zinc-700 hover:border-brand transition-colors">
+                    {user.photoURL ? <img src={user.photoURL} alt="Profile" referrerPolicy="no-referrer" /> : <User className="w-4 h-4 text-zinc-400" />}
+                  </Link>
+                  <button onClick={() => signOut(auth)} className="border border-zinc-500 hover:border-white text-zinc-300 hover:text-white px-4 py-1.5 rounded text-xs font-bold transition-all">
+                    SIGN OUT
+                  </button>
+                </div>
               ) : (
-                <button onClick={() => { setIsAuthModalOpen(true); setIsOpen(false); }} className="border border-zinc-600 text-zinc-300 px-4 py-2 rounded text-sm font-bold text-center">Sign In</button>
+                <button onClick={() => setIsAuthModalOpen(true)} className="border border-zinc-500 hover:border-white text-zinc-300 hover:text-white px-4 py-1.5 rounded text-xs font-bold transition-all">
+                  SIGN IN
+                </button>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
-    <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-  </>
-);
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="md:hidden absolute top-16 left-0 right-0 bg-zinc-950 border-b border-zinc-900 p-4 space-y-4 shadow-2xl overflow-hidden">
+              {navItems.map((item) => (
+                <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)} className="block text-sm font-semibold tracking-wider text-zinc-300 hover:text-white">
+                  {item.name}
+                </Link>
+              ))}
+              <div className="pt-4 border-t border-zinc-800 flex flex-col gap-4">
+                <button className="bg-brand text-black px-6 py-2 rounded text-sm font-bold text-center">Subscribe</button>
+                {isAdmin && <Link to="/admin" onClick={() => setIsOpen(false)} className="text-sm font-semibold tracking-wider text-zinc-300">Admin Panel</Link>}
+                {user ? (
+                  <button onClick={() => { signOut(auth); setIsOpen(false); }} className="border border-zinc-600 text-zinc-300 px-4 py-2 rounded text-sm font-bold text-center">Sign Out</button>
+                ) : (
+                  <button onClick={() => { setIsAuthModalOpen(true); setIsOpen(false); }} className="border border-zinc-600 text-zinc-300 px-4 py-2 rounded text-sm font-bold text-center">Sign In</button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+    </>
+  );
 };
 
 const HeroBanner = ({ featuredArticle }: { featuredArticle?: any }) => {
@@ -219,7 +220,7 @@ const HeroBanner = ({ featuredArticle }: { featuredArticle?: any }) => {
     <div className="relative w-full h-[60vh] md:h-[80vh] bg-zinc-900 overflow-hidden">
       <img src={heroData.image} alt="Hero" className="w-full h-full object-cover opacity-80" referrerPolicy="no-referrer" />
       <div className="absolute inset-0 ott-gradient" />
-      
+
       <div className="absolute bottom-0 left-0 w-full pb-16 md:pb-28 z-10 flex justify-center">
         <div className="w-full max-w-7xl px-4 md:px-12 flex items-end justify-between">
           <div className="max-w-2xl">
@@ -234,7 +235,7 @@ const HeroBanner = ({ featuredArticle }: { featuredArticle?: any }) => {
               </button>
             </div>
           </div>
-          
+
           <div className="hidden md:flex items-center gap-4">
             <button onClick={() => setIsMuted(!isMuted)} className="w-10 h-10 rounded-full border border-zinc-500 flex items-center justify-center text-white hover:bg-white/10 transition-colors backdrop-blur-sm">
               {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -245,9 +246,9 @@ const HeroBanner = ({ featuredArticle }: { featuredArticle?: any }) => {
           </div>
         </div>
       </div>
-      
+
       <div className="absolute bottom-12 md:bottom-24 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {[0,1,2].map(i => (
+        {[0, 1, 2].map(i => (
           <div key={i} className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-brand" : "bg-zinc-600")} />
         ))}
       </div>
@@ -258,23 +259,23 @@ const HeroBanner = ({ featuredArticle }: { featuredArticle?: any }) => {
 
 const ContentCard: React.FC<{ item: ContentItem, type: string }> = ({ item, type }) => {
   const navigate = useNavigate();
-  
-  const aspectClass = 
-    type === 'portrait' ? 'aspect-[2/3] w-32 md:w-44' : 
-    type === 'landscape' ? 'aspect-video w-64 md:w-80' : 
-    'aspect-square w-32 md:w-48';
+
+  const aspectClass =
+    type === 'portrait' ? 'aspect-[2/3] w-32 md:w-44' :
+      type === 'landscape' ? 'aspect-video w-64 md:w-80' :
+        'aspect-square w-32 md:w-48';
 
   return (
     <div onClick={() => navigate(`/watch/${item.id}`)} className={cn("relative flex-shrink-0 snap-start rounded-xl overflow-hidden bg-zinc-900 group card-hover border border-white/5", aspectClass)}>
       <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
-      
+
       {item.isPremium && (
         <div className="absolute top-0 right-0 bg-brand text-black text-[9px] font-bold px-2 py-0.5 rounded-bl z-10">
           Premium
         </div>
       )}
-      
+
       <div className="absolute bottom-0 left-0 w-full p-3 z-10">
         <h3 className="text-white text-xs md:text-sm font-bold line-clamp-2 leading-tight drop-shadow-md group-hover:-translate-y-1 transition-transform duration-300">{item.title}</h3>
       </div>
@@ -288,7 +289,7 @@ const ContentRow: React.FC<{ title: string, items: ContentItem[], type: string }
       <div className="flex justify-between items-end mb-3 px-4 md:px-12">
         <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">{title}</h2>
         <button className="text-xs font-semibold text-zinc-400 hover:text-white flex items-center transition-colors">
-          See all <ChevronRight className="w-4 h-4 ml-0.5"/>
+          See all <ChevronRight className="w-4 h-4 ml-0.5" />
         </button>
       </div>
       <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar px-4 md:px-12 snap-x snap-mandatory py-6 -my-6">
@@ -302,7 +303,7 @@ const ContentRow: React.FC<{ title: string, items: ContentItem[], type: string }
 
 const HomePage = ({ dbVideos, dbArticles }: { dbVideos: Video[], dbArticles: any[] }) => {
   const categories: { [key: string]: ContentItem[] } = {};
-  
+
   const allItems = [
     ...dbArticles.map(a => ({ ...a, type: 'article' })),
     ...dbVideos.map(v => ({ ...v, type: 'video' }))
@@ -326,16 +327,16 @@ const HomePage = ({ dbVideos, dbArticles }: { dbVideos: Video[], dbArticles: any
       <div className="relative z-20 -mt-10 md:-mt-20 space-y-8 md:space-y-12">
         <ContinueWatchingRow />
         {Object.entries(categories).map(([cat, items], idx) => (
-          <ContentRow 
-            key={cat} 
-            title={cat} 
-            items={items} 
-            type={idx % 2 === 0 ? "portrait" : "landscape"} 
+          <ContentRow
+            key={cat}
+            title={cat}
+            items={items}
+            type={idx % 2 === 0 ? "portrait" : "landscape"}
           />
         ))}
         {dbArticles.length === 0 && dbVideos.length === 0 && (
           <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 md:px-12 py-10">
-             {[1,2,3,4].map(i => <VideoCardSkeleton key={i} />)}
+            {[1, 2, 3, 4].map(i => <VideoCardSkeleton key={i} />)}
           </div>
         )}
       </div>
@@ -350,32 +351,32 @@ const ShortsPage = ({ dbShorts }: { dbShorts: Video[] }) => {
       <div className="h-full w-full md:max-w-md md:mx-auto snap-y snap-mandatory overflow-y-scroll no-scrollbar">
         {dbShorts.length > 0 ? dbShorts.map(short => (
           <div key={short.id} className="h-full w-full snap-start relative flex items-center justify-center bg-black">
-             <div className="absolute inset-0 bg-zinc-900 border-x border-zinc-800 flex items-center justify-center">
-                <iframe 
-                  className="w-full h-full" 
-                  src={`https://www.youtube.com/embed/${short.youtubeId}?autoplay=1&loop=1&playlist=${short.youtubeId}&controls=0&modestbranding=1&rel=0`} 
-                  title={short.title} 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                ></iframe>
-             </div>
-             
-             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 pt-20 pointer-events-none">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-black font-bold text-xs">P</div>
-                  <span className="text-white font-bold text-sm shadow-sm">Prime News</span>
-                </div>
-                <h3 className="text-white font-medium text-sm leading-snug drop-shadow-lg line-clamp-2">{short.title}</h3>
-             </div>
+            <div className="absolute inset-0 bg-zinc-900 border-x border-zinc-800 flex items-center justify-center">
+              <iframe
+                className="w-full h-full"
+                src={`https://www.youtube.com/embed/${short.youtubeId}?autoplay=1&loop=1&playlist=${short.youtubeId}&controls=0&modestbranding=1&rel=0`}
+                title={short.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              ></iframe>
+            </div>
 
-             <div className="absolute right-3 bottom-20 flex flex-col gap-5">
-                <button className="flex flex-col items-center gap-1 group">
-                   <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors">
-                     <Share2 className="w-5 h-5 text-white" />
-                   </div>
-                   <span className="text-[10px] text-white font-bold uppercase tracking-tighter">Share</span>
-                </button>
-             </div>
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 pt-20 pointer-events-none">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-black font-bold text-xs">P</div>
+                <span className="text-white font-bold text-sm shadow-sm">Prime News</span>
+              </div>
+              <h3 className="text-white font-medium text-sm leading-snug drop-shadow-lg line-clamp-2">{short.title}</h3>
+            </div>
+
+            <div className="absolute right-3 bottom-20 flex flex-col gap-5">
+              <button className="flex flex-col items-center gap-1 group">
+                <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors">
+                  <Share2 className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-[10px] text-white font-bold uppercase tracking-tighter">Share</span>
+              </button>
+            </div>
           </div>
         )) : (
           <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-4">
@@ -389,15 +390,15 @@ const ShortsPage = ({ dbShorts }: { dbShorts: Video[] }) => {
 };
 
 
-const WatchPage = ({ 
-  dbVideos, 
-  isPremium, 
-  userBookmarks = [], 
-  userDownloads = [], 
-  onToggleBookmark, 
-  onToggleDownload 
-}: { 
-  dbVideos: Video[], 
+const WatchPage = ({
+  dbVideos,
+  isPremium,
+  userBookmarks = [],
+  userDownloads = [],
+  onToggleBookmark,
+  onToggleDownload
+}: {
+  dbVideos: Video[],
   isPremium: boolean,
   userBookmarks?: string[],
   userDownloads?: string[],
@@ -406,7 +407,7 @@ const WatchPage = ({
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const video = dbVideos.find(v => v.id === id);
 
   if (!video) return <div className="pt-32 text-center text-white">Content not found</div>;
@@ -420,13 +421,13 @@ const WatchPage = ({
   return (
     <div className="pb-20 md:pb-0 bg-background min-h-screen">
       <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-50 bg-gradient-to-b from-black/90 to-transparent">
-         <button onClick={() => navigate(-1)}><ArrowLeft className="text-white w-6 h-6"/></button>
-         <div className="flex gap-4">
-           <Cast className="text-white w-5 h-5"/>
-           <MoreVertical className="text-white w-5 h-5"/>
-         </div>
+        <button onClick={() => navigate(-1)}><ArrowLeft className="text-white w-6 h-6" /></button>
+        <div className="flex gap-4">
+          <Cast className="text-white w-5 h-5" />
+          <MoreVertical className="text-white w-5 h-5" />
+        </div>
       </div>
-      
+
       <div className="max-w-5xl mx-auto md:pt-24">
         <div className="relative aspect-video w-full bg-black md:rounded-3xl overflow-hidden shadow-2xl border border-white/5">
           {isContentPremium && !isPremium ? (
@@ -444,54 +445,54 @@ const WatchPage = ({
             <iframe className="w-full h-full" src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`} title={video.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
           )}
         </div>
-        
+
         <div className="px-4 md:px-0 mt-8">
           <div className="flex items-start justify-between gap-4 mb-2">
             <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight">{video.title}</h1>
             {isContentPremium && (
-               <div className="bg-brand/10 border border-brand/30 text-brand text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shrink-0">
+              <div className="bg-brand/10 border border-brand/30 text-brand text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shrink-0">
                 <Zap className="w-3 h-3 fill-current" /> PREMIUM
               </div>
             )}
           </div>
           <p className="text-xs md:text-sm text-zinc-400 mb-8 font-medium">AMG Prime Original | {video.category}</p>
-          
+
           <div className="flex items-center justify-center gap-12 border-b border-zinc-900 pb-8 mb-8">
-            <button 
+            <button
               onClick={() => id && onToggleBookmark?.(id)}
               className={cn("flex flex-col items-center gap-2 transition-all active:scale-90", isBookmarked ? "text-brand" : "text-zinc-400 hover:text-white")}
             >
-              <Bookmark className={cn("w-6 h-6", isBookmarked && "fill-current")}/>
+              <Bookmark className={cn("w-6 h-6", isBookmarked && "fill-current")} />
               <span className="text-[10px] font-bold uppercase tracking-wider">Bookmark</span>
             </button>
-            <button 
+            <button
               onClick={() => id && onToggleDownload?.(id)}
               className={cn("flex flex-col items-center gap-2 transition-all active:scale-90", isDownloaded ? "text-brand" : "text-zinc-400 hover:text-white")}
             >
-              <Download className={cn("w-6 h-6", isDownloaded && "fill-current")}/>
+              <Download className={cn("w-6 h-6", isDownloaded && "fill-current")} />
               <span className="text-[10px] font-bold uppercase tracking-wider">Download</span>
             </button>
             <button className="flex flex-col items-center gap-2 text-zinc-400 hover:text-white transition-all active:scale-90">
-              <Share2 className="w-6 h-6"/>
+              <Share2 className="w-6 h-6" />
               <span className="text-[10px] font-bold uppercase tracking-wider">Share</span>
             </button>
           </div>
-          
+
           <h3 className="text-lg font-bold text-white mb-6 border-b border-brand inline-block pb-1">Recommended Videos</h3>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-             {dbVideos.filter(v => v.id !== id).slice(0, 4).map(v => (
-                <div key={v.id} onClick={() => navigate(`/watch/${v.id}`)} className="group cursor-pointer">
-                  <div className="aspect-video relative rounded-xl overflow-hidden mb-3 border border-white/5">
-                    <img src={v.thumbnail} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                       <Play className="w-10 h-10 text-brand fill-current" />
-                    </div>
+            {dbVideos.filter(v => v.id !== id).slice(0, 4).map(v => (
+              <div key={v.id} onClick={() => navigate(`/watch/${v.id}`)} className="group cursor-pointer">
+                <div className="aspect-video relative rounded-xl overflow-hidden mb-3 border border-white/5">
+                  <img src={v.thumbnail} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Play className="w-10 h-10 text-brand fill-current" />
                   </div>
-                  <h4 className="text-white text-sm font-bold line-clamp-1 mb-1 group-hover:text-brand transition-colors">{v.title}</h4>
-                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">{v.category}</p>
                 </div>
-             ))}
+                <h4 className="text-white text-sm font-bold line-clamp-1 mb-1 group-hover:text-brand transition-colors">{v.title}</h4>
+                <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">{v.category}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -501,6 +502,7 @@ const WatchPage = ({
 
 export default function App() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [videos, setVideos] = useState<Video[]>([]);
@@ -508,7 +510,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [userBookmarks, setUserBookmarks] = useState<string[]>([]);
   const [userDownloads, setUserDownloads] = useState<string[]>([]);
-  
+
   const [toast, setToast] = useState<{ message: string, type: ToastType, isVisible: boolean }>({
     message: '',
     type: 'info',
@@ -522,21 +524,43 @@ export default function App() {
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      
       if (currentUser) {
-        const profile = await FirestoreService.getUserProfile(currentUser.uid);
-        if (profile) {
-          setIsAdmin(profile.role === 'admin' || currentUser.email === 'jitbanerjeesujan@gmail.com');
-          setIsPremium(profile.isPremium || profile.role === 'admin' || currentUser.email === 'jitbanerjeesujan@gmail.com');
-        } else {
-          setIsAdmin(currentUser.email === 'jitbanerjeesujan@gmail.com');
-          setIsPremium(currentUser.email === 'jitbanerjeesujan@gmail.com');
+        console.log("Current User Email:", currentUser.email);
+        const normalizedEmail = currentUser.email?.toLowerCase().trim();
+        const isAdminEmail = normalizedEmail === 'jitbanerjeesujan@gmail.com' || normalizedEmail === 'rahul6pal9@gmail.com';
+
+        // Set status immediately based on email
+        setIsAdmin(isAdminEmail);
+        setIsPremium(isAdminEmail);
+        
+        // Clear loading state immediately if we've already identified the user via email
+        // This prevents hanging if the database is unreachable
+        setAuthLoading(false);
+
+        try {
+          // Attempt profile fetch with a timeout
+          const profilePromise = FirestoreService.getUserProfile(currentUser.uid);
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000));
+          
+          const profile = await Promise.race([profilePromise, timeoutPromise]) as any;
+          console.log("User Profile:", profile);
+
+          if (profile) {
+            const isUserAdmin = profile.role === 'admin' || isAdminEmail;
+            setIsAdmin(isUserAdmin);
+            setIsPremium(profile.isPremium || isUserAdmin);
+            console.log("Admin Status (profile loaded):", isUserAdmin);
+          }
+        } catch (error) {
+          console.warn("Firestore profile fetch failed or timed out. Using email-based auth.", error);
         }
 
         const qB = query(collection(db, "users", currentUser.uid, "bookmarks"));
-        const unsubB = onSnapshot(qB, (snap) => setUserBookmarks(snap.docs.map(d => d.id)));
+        const unsubB = onSnapshot(qB, (snap) => setUserBookmarks(snap.docs.map(d => d.id)), (err) => console.warn("Bookmarks sync error:", err));
 
         const qD = query(collection(db, "users", currentUser.uid, "downloads"));
-        const unsubD = onSnapshot(qD, (snap) => setUserDownloads(snap.docs.map(d => d.id)));
+        const unsubD = onSnapshot(qD, (snap) => setUserDownloads(snap.docs.map(d => d.id)), (err) => console.warn("Downloads sync error:", err));
 
         return () => { unsubB(); unsubD(); };
       } else {
@@ -544,21 +568,40 @@ export default function App() {
         setIsPremium(false);
         setUserBookmarks([]);
         setUserDownloads([]);
+        setAuthLoading(false);
       }
     });
+
+    const dataTimeout = setTimeout(() => {
+      setLoading(false);
+      console.warn("Initial data load timed out. Showing partial/empty state.");
+    }, 3000);
 
     const qVideos = query(collection(db, "videos"), orderBy("createdAt", "desc"));
     const unsubVideos = onSnapshot(qVideos, (snap) => {
       setVideos(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Video)));
-    }, () => showToast("Error connecting to videos", "error"));
+    }, (err) => {
+      console.error("Videos fetch error:", err);
+      setLoading(false);
+    });
 
     const qArticles = query(collection(db, "articles"), orderBy("createdAt", "desc"));
     const unsubArticles = onSnapshot(qArticles, (snap) => {
       setArticles(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
-    }, () => showToast("Error connecting to news feed", "error"));
+      clearTimeout(dataTimeout);
+    }, (err) => {
+      console.error("Articles fetch error:", err);
+      setLoading(false);
+      clearTimeout(dataTimeout);
+    });
 
-    return () => { unsubscribeAuth(); unsubVideos(); unsubArticles(); };
+    return () => { 
+      unsubscribeAuth(); 
+      unsubVideos(); 
+      unsubArticles(); 
+      clearTimeout(dataTimeout);
+    };
   }, []);
 
   const handleTogglePreference = async (videoId: string, type: 'bookmarks' | 'downloads') => {
@@ -578,10 +621,10 @@ export default function App() {
     <ErrorBoundary>
       <Router>
         <div className="min-h-screen bg-background text-zinc-100 pb-16 md:pb-0 overflow-x-hidden selection:bg-brand selection:text-black">
-          <Navbar user={user} isAdmin={isAdmin} />
+          <NavWrapper user={user} isAdmin={isAdmin} />
           <main>
             <Routes>
-              <Route path="/" element={loading ? <div className="pt-32 px-12 grid grid-cols-1 md:grid-cols-3 gap-6">{[1,2,3].map(i => <VideoCardSkeleton key={i}/>)}</div> : <HomePage dbVideos={videos} dbArticles={articles} />} />
+              <Route path="/" element={loading ? <div className="pt-32 px-12 grid grid-cols-1 md:grid-cols-3 gap-6">{[1, 2, 3].map(i => <VideoCardSkeleton key={i} />)}</div> : <HomePage dbVideos={videos} dbArticles={articles} />} />
               <Route path="/live" element={<LiveTVPage />} />
               <Route path="/series" element={<SeriesPage />} />
               <Route path="/search" element={<SearchPage allContent={[...videos, ...articles]} />} />
@@ -592,20 +635,32 @@ export default function App() {
               <Route path="/profile" element={<ProfilePage user={user} isPremium={isPremium} />} />
               <Route path="/watch/:id" element={<WatchPage dbVideos={videos} isPremium={isPremium} userBookmarks={userBookmarks} userDownloads={userDownloads} onToggleBookmark={(id) => handleTogglePreference(id, 'bookmarks')} onToggleDownload={(id) => handleTogglePreference(id, 'downloads')} />} />
               <Route path="/shorts" element={<ShortsPage dbShorts={videos.filter(v => v.category === 'Shorts')} />} />
-              <Route path="/admin" element={<AdminPanel user={user} isAdmin={isAdmin} showToast={showToast} />} />
+              <Route path="/admin" element={<AdminPanel user={user} isAdmin={isAdmin} authLoading={authLoading} showToast={showToast} />} />
               <Route path="*" element={<div className="pt-32 text-center text-zinc-400">Section Coming Soon</div>} />
             </Routes>
           </main>
-          <BottomNav />
-          <Toast 
-            isVisible={toast.isVisible} 
-            message={toast.message} 
-            type={toast.type} 
-            onClose={() => setToast(prev => ({ ...prev, isVisible: false }))} 
+          <BottomNavWrapper />
+          <Toast
+            isVisible={toast.isVisible}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
           />
         </div>
       </Router>
     </ErrorBoundary>
   );
 }
+
+const NavWrapper = ({ user, isAdmin }: any) => {
+  const location = useLocation();
+  if (location.pathname.startsWith('/admin')) return null;
+  return <Navbar user={user} isAdmin={isAdmin} />;
+};
+
+const BottomNavWrapper = () => {
+  const location = useLocation();
+  if (location.pathname.startsWith('/admin')) return null;
+  return <BottomNav />;
+};
 
