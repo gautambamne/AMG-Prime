@@ -11,9 +11,22 @@ import {
   serverTimestamp,
   updateDoc,
   addDoc,
+  getDocs,
   DocumentReference,
   CollectionReference
 } from 'firebase/firestore';
+
+export interface UserProfile {
+  id?: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  role: 'admin' | 'user';
+  isPremium: boolean;
+  lastLogin?: any;
+  createdAt?: any;
+  updatedAt?: any;
+}
 
 export interface Video {
   id: string;
@@ -46,48 +59,87 @@ export const FirestoreService = {
 
     if (prefSnap.exists()) {
       await deleteDoc(prefRef);
-      return false; // Removed
+      return false;
     } else {
       await setDoc(prefRef, {
-        id: videoId,
-        savedAt: serverTimestamp(),
+        timestamp: serverTimestamp(),
+        videoId: videoId
       });
-      return true; // Added
+      return true;
     }
   },
 
   /**
-   * Fetches user profile data including role and premium status.
+   * listing all the users from firestore
    */
-  async getUserProfile(userId: string) {
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      return userSnap.data();
+  async getUsers(): Promise<UserProfile[]> {
+    const usersSnap = await getDocs(collection(db, 'users'));
+    return usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
+  },
+
+  /**
+   * Ensures a user profile exists in Firestore.
+   * If it doesn't exist, it creates one. If it does, it updates basic info.
+   */
+  async ensureUserProfile(user: any): Promise<UserProfile | null> {
+    if (!user) return null;
+    
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      const profileData = {
+        email: user.email,
+        displayName: user.displayName || user.email?.split('@')[0] || 'User',
+        photoURL: user.photoURL || null,
+        lastLogin: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      if (!userSnap.exists()) {
+        // New users always start with 'user' role.
+        // Admin role must be assigned manually in Firestore.
+        const newProfile: UserProfile = {
+          ...profileData,
+          role: 'user',
+          isPremium: false,
+          createdAt: serverTimestamp(),
+        };
+        await setDoc(userRef, newProfile);
+        return newProfile;
+      } else {
+        await updateDoc(userRef, profileData);
+        const existingData = userSnap.data() as UserProfile;
+        return { ...existingData, ...profileData } as UserProfile;
+      }
+    } catch (error) {
+      console.error("Error ensuring user profile:", error);
+      return null;
     }
-    return null;
   },
 
   /**
    * Generic content update or create.
    */
-  async publishContent(collectionName: string, data: any, id?: string) {
+  async publishContent(type: string, data: any, id?: string) {
     if (id) {
-      const docRef = doc(db, collectionName, id);
+      const docRef = doc(db, type, id);
       await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
       return id;
     } else {
-      const colRef = collection(db, collectionName);
-      const newDoc = await addDoc(colRef, { ...data, createdAt: serverTimestamp() });
-      return newDoc.id;
+      const docRef = await addDoc(collection(db, type), {
+        ...data,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return docRef.id;
     }
   },
 
   /**
-   * Deletes content from a collection.
+   * Delete content from a collection.
    */
   async deleteContent(collectionName: string, id: string) {
-    const docRef = doc(db, collectionName, id);
-    await deleteDoc(docRef);
+    await deleteDoc(doc(db, collectionName, id));
   }
 };

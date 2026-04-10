@@ -85,7 +85,7 @@ const ContinueWatchingRow = () => {
       <h2 className="text-lg md:text-xl font-bold text-white tracking-tight mb-3 px-4 md:px-12">Continue Watching</h2>
       <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar px-4 md:px-12 snap-x snap-mandatory py-6 -my-6">
         {items.map(item => (
-          <div key={item.id} className="relative flex-shrink-0 snap-start w-64 md:w-80 rounded overflow-hidden bg-zinc-900 group cursor-pointer card-hover">
+          <div key={item.id} className="relative shrink-0 snap-start w-64 md:w-80 rounded overflow-hidden bg-zinc-900 group cursor-pointer card-hover">
             <div className="aspect-video relative">
               <img src={item.thumbnail} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
@@ -122,7 +122,7 @@ const Navbar = ({ user, isAdmin }: { user: FirebaseUser | null, isAdmin: boolean
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/90 to-transparent transition-all duration-300">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-linear-to-b from-black/90 to-transparent transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 md:px-12 h-16 md:h-20 flex items-center justify-between">
 
           <button className="md:hidden text-white p-2 -ml-2" onClick={() => setIsOpen(!isOpen)}>
@@ -266,9 +266,9 @@ const ContentCard: React.FC<{ item: ContentItem, type: string }> = ({ item, type
         'aspect-square w-32 md:w-48';
 
   return (
-    <div onClick={() => navigate(`/watch/${item.id}`)} className={cn("relative flex-shrink-0 snap-start rounded-xl overflow-hidden bg-zinc-900 group card-hover border border-white/5", aspectClass)}>
+    <div onClick={() => navigate(`/watch/${item.id}`)} className={cn("relative shrink-0 snap-start rounded-xl overflow-hidden bg-zinc-900 group card-hover border border-white/5", aspectClass)}>
       <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
 
       {item.isPremium && (
         <div className="absolute top-0 right-0 bg-brand text-black text-[9px] font-bold px-2 py-0.5 rounded-bl z-10">
@@ -361,7 +361,7 @@ const ShortsPage = ({ dbShorts }: { dbShorts: Video[] }) => {
               ></iframe>
             </div>
 
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 pt-20 pointer-events-none">
+            <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/20 to-transparent p-6 pt-20 pointer-events-none">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-black font-bold text-xs">P</div>
                 <span className="text-white font-bold text-sm shadow-sm">Prime News</span>
@@ -420,7 +420,7 @@ const WatchPage = ({
 
   return (
     <div className="pb-20 md:pb-0 bg-background min-h-screen">
-      <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-50 bg-gradient-to-b from-black/90 to-transparent">
+      <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-50 bg-linear-to-b from-black/90 to-transparent">
         <button onClick={() => navigate(-1)}><ArrowLeft className="text-white w-6 h-6" /></button>
         <div className="flex gap-4">
           <Cast className="text-white w-5 h-5" />
@@ -510,6 +510,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [userBookmarks, setUserBookmarks] = useState<string[]>([]);
   const [userDownloads, setUserDownloads] = useState<string[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
 
   const [toast, setToast] = useState<{ message: string, type: ToastType, isVisible: boolean }>({
     message: '',
@@ -526,34 +527,32 @@ export default function App() {
       setUser(currentUser);
       
       if (currentUser) {
-        console.log("Current User Email:", currentUser.email);
-        const normalizedEmail = currentUser.email?.toLowerCase().trim();
-        const isAdminEmail = normalizedEmail === 'jitbanerjeesujan@gmail.com' || normalizedEmail === 'rahul6pal9@gmail.com';
-
-        // Set status immediately based on email
-        setIsAdmin(isAdminEmail);
-        setIsPremium(isAdminEmail);
-        
-        // Clear loading state immediately if we've already identified the user via email
-        // This prevents hanging if the database is unreachable
-        setAuthLoading(false);
-
         try {
-          // Attempt profile fetch with a timeout
-          const profilePromise = FirestoreService.getUserProfile(currentUser.uid);
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000));
+          // Sync profile and fetch role/premium status from Firestore.
+          // Admin must be set via role: 'admin' in the Firestore users collection.
+          const profile = await FirestoreService.ensureUserProfile(currentUser);
           
-          const profile = await Promise.race([profilePromise, timeoutPromise]) as any;
-          console.log("User Profile:", profile);
-
           if (profile) {
-            const isUserAdmin = profile.role === 'admin' || isAdminEmail;
+            const isUserAdmin = profile.role === 'admin';
             setIsAdmin(isUserAdmin);
             setIsPremium(profile.isPremium || isUserAdmin);
-            console.log("Admin Status (profile loaded):", isUserAdmin);
+            
+            // If admin, fetch all users
+            if (isUserAdmin) {
+              const usersList = await FirestoreService.getUsers();
+              setAllUsers(usersList);
+            }
+          } else {
+            // Profile fetch failed — treat as regular user
+            setIsAdmin(false);
+            setIsPremium(false);
           }
         } catch (error) {
-          console.warn("Firestore profile fetch failed or timed out. Using email-based auth.", error);
+          console.warn("User profile sync/fetch failed.", error);
+          setIsAdmin(false);
+          setIsPremium(false);
+        } finally {
+          setAuthLoading(false);
         }
 
         const qB = query(collection(db, "users", currentUser.uid, "bookmarks"));
@@ -568,6 +567,7 @@ export default function App() {
         setIsPremium(false);
         setUserBookmarks([]);
         setUserDownloads([]);
+        setAllUsers([]);
         setAuthLoading(false);
       }
     });
@@ -635,7 +635,7 @@ export default function App() {
               <Route path="/profile" element={<ProfilePage user={user} isPremium={isPremium} />} />
               <Route path="/watch/:id" element={<WatchPage dbVideos={videos} isPremium={isPremium} userBookmarks={userBookmarks} userDownloads={userDownloads} onToggleBookmark={(id) => handleTogglePreference(id, 'bookmarks')} onToggleDownload={(id) => handleTogglePreference(id, 'downloads')} />} />
               <Route path="/shorts" element={<ShortsPage dbShorts={videos.filter(v => v.category === 'Shorts')} />} />
-              <Route path="/admin" element={<AdminPanel user={user} isAdmin={isAdmin} authLoading={authLoading} showToast={showToast} />} />
+              <Route path="/admin" element={<AdminPanel user={user} isAdmin={isAdmin} authLoading={authLoading} showToast={showToast} allUsers={allUsers} />} />
               <Route path="*" element={<div className="pt-32 text-center text-zinc-400">Section Coming Soon</div>} />
             </Routes>
           </main>

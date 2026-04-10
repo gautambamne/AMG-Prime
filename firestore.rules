@@ -1,18 +1,61 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2026, 5, 10);
+
+    // Public content — anyone can read, only authenticated admins can write
+    match /videos/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email in [
+        'jitbanerjeesujan@gmail.com',
+        'rahul6pal9@gmail.com',
+        'gautam2003b@gmail.com'
+      ];
+    }
+
+    match /articles/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email in [
+        'jitbanerjeesujan@gmail.com',
+        'rahul6pal9@gmail.com',
+        'gautam2003b@gmail.com'
+      ];
+    }
+
+    match /magazines/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email in [
+        'jitbanerjeesujan@gmail.com',
+        'rahul6pal9@gmail.com',
+        'gautam2003b@gmail.com'
+      ];
+    }
+
+    match /events/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email in [
+        'jitbanerjeesujan@gmail.com',
+        'rahul6pal9@gmail.com',
+        'gautam2003b@gmail.com'
+      ];
+    }
+
+    // Users can only read/write their own profile and sub-collections
+    match /users/{userId} {
+      allow list, read: if request.auth != null && request.auth.token.email in [
+        'jitbanerjeesujan@gmail.com',
+        'rahul6pal9@gmail.com',
+        'gautam2003b@gmail.com'
+      ];
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      match /bookmarks/{videoId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /downloads/{videoId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }

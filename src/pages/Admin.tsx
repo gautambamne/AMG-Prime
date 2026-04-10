@@ -12,7 +12,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FirestoreService, Video as IVideo } from '../lib/firestore-service';
 import { ToastType } from '../components/Toast';
 
-const AdminPanel = ({ user, isAdmin, authLoading, showToast }: { user: FirebaseUser | null, isAdmin: boolean, authLoading: boolean, showToast?: (m: string, t: ToastType) => void }) => {
+const AdminPanel = ({ user, isAdmin, authLoading, showToast, allUsers = [] }: { 
+  user: FirebaseUser | null, 
+  isAdmin: boolean, 
+  authLoading: boolean, 
+  showToast?: (m: string, t: ToastType) => void,
+  allUsers?: any[] 
+}) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [articles, setArticles] = useState<any[]>([]);
@@ -108,10 +114,10 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast }: { user: FirebaseU
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
           <p className="text-zinc-400 mb-8">
-            You don't have administrative privileges to access this area. 
+            You don't have administrative privileges to access this area.
             If you believe this is an error, please contact support.
           </p>
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="w-full bg-zinc-100 text-black py-3 rounded-xl font-semibold hover:bg-white transition-colors"
           >
@@ -204,6 +210,13 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast }: { user: FirebaseU
             <Calendar className="w-5 h-5 text-brand" />
           </div>
           <p className="text-3xl font-bold text-white">{events.length}</p>
+        </div>
+        <div className="bg-zinc-900 border border-brand/10 p-6 rounded-xl shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-zinc-400 font-medium text-sm">Total Users</h3>
+            <Users className="w-5 h-5 text-brand" />
+          </div>
+          <p className="text-3xl font-bold text-white">{allUsers.length}</p>
         </div>
       </div>
 
@@ -608,17 +621,36 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast }: { user: FirebaseU
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            <tr className="hover:bg-zinc-800/50 transition-colors">
-              <td className="px-6 py-4 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-brand/20 text-brand flex items-center justify-center font-bold">
-                  {user.displayName?.charAt(0) || 'A'}
-                </div>
-                <span className="text-white font-medium">{user.displayName || 'Admin User'}</span>
-              </td>
-              <td className="px-6 py-4">{user.email}</td>
-              <td className="px-6 py-4"><span className="bg-brand/10 text-brand px-2 py-1 rounded text-xs font-bold">Admin</span></td>
-              <td className="px-6 py-4"><span className="text-green-500">Active</span></td>
-            </tr>
+            {allUsers.length > 0 ? (
+              allUsers.map((u, i) => (
+                <tr key={u.id || i} className="hover:bg-zinc-800/50 transition-colors">
+                  <td className="px-6 py-4 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-brand/20 text-brand flex items-center justify-center font-bold">
+                      {u.displayName?.charAt(0) || u.email?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                    <span className="text-white font-medium">{u.displayName || 'Unnamed User'}</span>
+                  </td>
+                  <td className="px-6 py-4">{u.email}</td>
+                  <td className="px-6 py-4 text-xs font-bold">
+                    <span className={`px-2 py-1 rounded ${u.role === 'admin' ? 'bg-brand/20 text-brand' : 'bg-zinc-800 text-zinc-400'}`}>
+                      {u.role?.toUpperCase() || 'USER'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${u.lastLogin ? 'bg-green-500 animate-pulse' : 'bg-zinc-600'}`}></span>
+                    <span className={u.lastLogin ? 'text-green-500' : 'text-zinc-500'}>
+                      {u.lastLogin ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="px-6 py-10 text-center text-zinc-500 italic">
+                  No users found in database.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -745,7 +777,7 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast }: { user: FirebaseU
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto bg-[#0A0A0A]">
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto bg-background">
         <div className="max-w-6xl mx-auto">
           {activeTab === 'dashboard' && renderDashboard()}
           {activeTab === 'content' && renderContent()}
