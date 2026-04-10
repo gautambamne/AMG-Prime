@@ -1,0 +1,24 @@
+{
+  "name": "AMG Prime | India's First Video News Magazine",
+  "short_name": "AMG Prime",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "description": "Insightful stories, expert talks, and exclusive documentaries.",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/wired/512/FFFFFF/play-button-circled.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://img.icons8.com/wired/192/FFFFFF/play-button-circled.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
