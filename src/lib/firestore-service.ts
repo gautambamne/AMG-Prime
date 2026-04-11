@@ -141,5 +141,26 @@ export const FirestoreService = {
    */
   async deleteContent(collectionName: string, id: string) {
     await deleteDoc(doc(db, collectionName, id));
+  },
+
+  /**
+   * Save video playback progress.
+   */
+  async saveVideoProgress(userId: string, videoId: string, progress: number, totalDuration: number) {
+    const progressRef = doc(db, 'users', userId, 'progress', videoId);
+    await setDoc(progressRef, {
+      videoId,
+      progress,
+      totalDuration,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  },
+
+  /**
+   * Get all video progress for a user.
+   */
+  async getVideoProgress(userId: string): Promise<any[]> {
+    const progressSnap = await getDocs(query(collection(db, 'users', userId, 'progress'), orderBy('updatedAt', 'desc')));
+    return progressSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 };

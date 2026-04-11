@@ -5,19 +5,20 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { signOut, User as FirebaseUser } from 'firebase/auth';
 import {
   LayoutDashboard, Film, Users, Settings, Plus, Trash2, ArrowLeft, LogOut, Video,
-  Activity, Eye, TrendingUp, BookOpen, Calendar, CreditCard, Bell, FileText,
+  Activity, Eye, TrendingUp, BookOpen, Calendar, CreditCard, Bell, FileText, Pencil,
   Upload, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FirestoreService, Video as IVideo } from '../lib/firestore-service';
 import { ToastType } from '../components/Toast';
+import { extractYoutubeId } from '../lib/utils';
 
-const AdminPanel = ({ user, isAdmin, authLoading, showToast, allUsers = [] }: { 
-  user: FirebaseUser | null, 
-  isAdmin: boolean, 
-  authLoading: boolean, 
+const AdminPanel = ({ user, isAdmin, authLoading, showToast, allUsers = [] }: {
+  user: FirebaseUser | null,
+  isAdmin: boolean,
+  authLoading: boolean,
   showToast?: (m: string, t: ToastType) => void,
-  allUsers?: any[] 
+  allUsers?: any[]
 }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -182,39 +183,34 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast, allUsers = [] }: {
   const renderDashboard = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-white tracking-tight">Platform Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h3 className="text-zinc-400 font-medium text-sm">Videos</h3>
-            <Film className="w-5 h-5 text-brand" />
           </div>
           <p className="text-3xl font-bold text-white">{videos.length}</p>
         </div>
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h3 className="text-zinc-400 font-medium text-sm">Articles</h3>
-            <FileText className="w-5 h-5 text-brand" />
           </div>
           <p className="text-3xl font-bold text-white">{articles.length}</p>
         </div>
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h3 className="text-zinc-400 font-medium text-sm">Magazines</h3>
-            <BookOpen className="w-5 h-5 text-brand" />
           </div>
           <p className="text-3xl font-bold text-white">{magazines.length}</p>
         </div>
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h3 className="text-zinc-400 font-medium text-sm">Events</h3>
-            <Calendar className="w-5 h-5 text-brand" />
           </div>
           <p className="text-3xl font-bold text-white">{events.length}</p>
         </div>
         <div className="bg-zinc-900 border border-brand/10 p-6 rounded-xl shadow-lg">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h3 className="text-zinc-400 font-medium text-sm">Total Users</h3>
-            <Users className="w-5 h-5 text-brand" />
           </div>
           <p className="text-3xl font-bold text-white">{allUsers.length}</p>
         </div>
@@ -293,7 +289,7 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast, allUsers = [] }: {
                         setEditingId(v.id);
                         setNewVideo({ title: v.title, category: v.category, youtubeId: v.youtubeId, thumbnail: v.thumbnail, isPremium: v.isPremium || false });
                       }} className="text-zinc-400 hover:text-white transition-colors p-1">
-                        <FileText className="w-4 h-4" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button onClick={() => handleDelete('videos', v.id)} className="text-red-400 hover:text-red-300 transition-colors p-1">
                         <Trash2 className="w-4 h-4" />
@@ -312,7 +308,11 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast, allUsers = [] }: {
           </h3>
           <form onSubmit={async (e) => {
             e.preventDefault();
-            handlePublish('videos', { ...newVideo, thumbnail: newVideo.thumbnail || `https://picsum.photos/seed/${Date.now()}/800/450` }, () => setNewVideo({ title: "", category: "Healthcare News", youtubeId: "", thumbnail: "", isPremium: false }));
+            handlePublish('videos', {
+              ...newVideo,
+              youtubeId: extractYoutubeId(newVideo.youtubeId),
+              thumbnail: newVideo.thumbnail || `https://picsum.photos/seed/${Date.now()}/800/450`
+            }, () => setNewVideo({ title: "", category: "Healthcare News", youtubeId: "", thumbnail: "", isPremium: false }));
           }} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-zinc-400 mb-1">Title</label>
@@ -392,7 +392,7 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast, allUsers = [] }: {
                       setEditingId(a.id);
                       setNewArticle({ title: a.title, category: a.category, content: a.content, thumbnail: a.thumbnail });
                     }} className="text-zinc-400 hover:text-white transition-colors p-1">
-                      <FileText className="w-4 h-4" />
+                      <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete('articles', a.id)} className="text-red-400 p-1">
                       <Trash2 className="w-4 h-4" />
@@ -460,7 +460,7 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast, allUsers = [] }: {
                       setEditingId(m.id);
                       setNewMagazine({ title: m.title, type: m.type, issueDate: m.issueDate, pdfUrl: m.pdfUrl, thumbnail: m.thumbnail });
                     }} className="text-zinc-400 hover:text-white transition-colors p-1">
-                      <FileText className="w-4 h-4" />
+                      <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete('magazines', m.id)} className="text-red-400 p-1">
                       <Trash2 className="w-4 h-4" />
@@ -555,7 +555,7 @@ const AdminPanel = ({ user, isAdmin, authLoading, showToast, allUsers = [] }: {
                       setEditingId(e.id);
                       setNewEvent({ title: e.title, date: e.date, location: e.location, description: e.description, thumbnail: e.thumbnail });
                     }} className="text-zinc-400 hover:text-white transition-colors p-1">
-                      <FileText className="w-4 h-4" />
+                      <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete('events', e.id)} className="text-red-400 p-1">
                       <Trash2 className="w-4 h-4" />
